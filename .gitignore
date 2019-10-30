@@ -324,3 +324,6 @@ TSWLatexianTemp*
 
 # Makeindex log files
 *.lpz
+
+# ssh passwords
+.pwd
