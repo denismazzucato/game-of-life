@@ -327,3 +327,9 @@ TSWLatexianTemp*
 
 # ssh passwords
 .pwd
+
+# pdf files
+.pdf
+
+# vscode dir
+.vscode
