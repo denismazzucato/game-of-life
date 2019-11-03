@@ -13,6 +13,7 @@ Conway's Game of Life
 int
 main(int argc, char *argv[])
 {
+
   MPI_Init(NULL, NULL); // argc, argv
 
   // Get the number of processes
@@ -29,12 +30,30 @@ main(int argc, char *argv[])
   MPI_Get_processor_name(processor_name, &name_len);
 
   // Print off a hello world message
-  printf(
-    "Hello world from processor %s, rank %d out of %d processors\n",
-    processor_name,
-    world_rank,
-    world_size
-  );
+  if (world_rank % 2 == 0 && world_rank < world_size) {
+    int data = world_rank;
+    int next_node = (world_rank + 1); // safe by the condition
+
+    MPI_Send(&data, 1, MPI_INT, next_node, 0, MPI_COMM_WORLD);
+  }
+
+  if (world_rank % 2 == 1) {
+    int buf;
+    MPI_Recv(&buf, 1, MPI_INT, world_rank-1, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+
+    printf(
+      "Hello world from processor %s, data %d, rank %d out of %d processors\n",
+      processor_name,
+      buf,
+      world_rank,
+      world_size
+    );
+    if (argc > 0) {
+      for (int i = 0; i < argc; i++) {
+        printf("%d-nth arg: '%s'\n", i, argv[i]);
+      }
+    }
+  }
 
   MPI_Finalize();
 

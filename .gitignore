@@ -326,10 +326,10 @@ TSWLatexianTemp*
 *.lpz
 
 # ssh passwords
-.pwd
+*.pwd
 
 # pdf files
-.pdf
+*.pdf
 
 # vscode dir
 .vscode
