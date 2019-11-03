@@ -33,7 +33,7 @@ main(int argc, char *argv[])
   if (world_rank % 2 == 0 && world_rank < world_size) {
     int data = world_rank;
     int next_node = (world_rank + 1); // safe by the condition
-
+    printf("%d", next_node);
     MPI_Send(&data, 1, MPI_INT, next_node, 0, MPI_COMM_WORLD);
   }
 
