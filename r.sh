@@ -10,5 +10,5 @@ fi
 
 cd $DIR
 make
-prun -v -1 -np $proc_number -script $PRUN_ETC/prun-openmpi ./$EXEC.o
+prun -v -1 -np $proc_number -script $PRUN_ETC/prun-openmpi ./$EXEC
 make clean
