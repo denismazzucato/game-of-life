@@ -1,7 +1,7 @@
 #!/bin/sh
 
 EXEC='gol-seq'
-DIR="./$EXEC/"
+DIR="./gol/"
 
 cd $DIR
 make

@@ -1,7 +1,7 @@
 #!/bin/sh
 
 EXEC='gol-par'
-DIR="./$EXEC/"
+DIR="./gol/"
 
 proc_number=1
 if [ -n "$1" ]; then
