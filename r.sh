@@ -1,7 +1,7 @@
 #!/bin/sh
 
 EXEC='gol-par'
-DIR="./$EXEC/"
+DIR="./gol/"
 
 proc_number=1
 if [ -n "$1" ]; then
@@ -10,5 +10,5 @@ fi
 
 cd $DIR
 make
-prun -v -1 -np $proc_number -script $PRUN_ETC/prun-openmpi ./$EXEC.o a
+prun -v -1 -np $proc_number -script $PRUN_ETC/prun-openmpi ./$EXEC
 make clean
