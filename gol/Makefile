@@ -6,6 +6,3 @@ gol-par: gol-par.c
 
 clean:
 	rm -f *.o *~ *core
-
-run: gol-par
-	mpirun gol-par a b c
