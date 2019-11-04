@@ -64,10 +64,11 @@ void abort(void) {
 
 void printCellUnsafe(void) {
 	for (int i = 1; i <= bheight && old; i++) {
-		fprintf(stdout,"\n(Node: %3d; Line: %3d): ", rank, i);
+		fprintf(stdout, "\n");
+		// fprintf(stdout,"(Node: %3d; Line: %3d): ", rank, i);
 		fflush(stdout);
 		for (int j = 1; j <= bwidth && old[i]; j++) {
-			fprintf(stdout,"%s", (old[i][j]) ? "0" : "_");
+			fprintf(stdout,"%s", (old[i][j]) ? "0" : " ");
 			fflush(stdout);
 		}
 	}
@@ -178,9 +179,9 @@ int isInsideStartWorld(int i, int j) {
 int* buildBoard(void) {
 	int *tmpBoard = malloc((nrows*bwidth) * sizeof(int));
 
-	fprintf(stderr, "\n[Initial Matrix:\n");
+	// fprintf(stderr, "\n[Initial Matrix:\n");
 	for (int i = 0; i < bwidth; i++) {
-		fprintf(stderr, " > ");
+		// fprintf(stderr, " > ");
 		for (int j = 0; j < nrows; j++) {
 			if (random_world)
 				tmpBoard[i*nrows + j] = (randomNumber() < 0.5 ? 0 : 1);
@@ -188,11 +189,11 @@ int* buildBoard(void) {
 				tmpBoard[i*nrows + j] = (start_world[i][j] != '.');
 			else
 				tmpBoard[i*nrows + j] = 0;
-			fprintf(stderr, "%s", (tmpBoard[i*nrows + j]) ? "0" : "_");
+			// fprintf(stderr, "%s", (tmpBoard[i*nrows + j]) ? "0" : "_");
 		}
-		fprintf(stderr, "\n");
+		// fprintf(stderr, "\n");
 	}
-	fprintf(stderr, "]\n");
+	// fprintf(stderr, "]\n");
 
 
 	return tmpBoard;
@@ -245,8 +246,6 @@ void initializeBoard(void) {
 	if (isMaster()) tempBoard = buildBoard();
 
 	scatterRows(tempBoard);
-
-	printCells();
 }
 
 void freeMatrices(void) {
@@ -284,6 +283,46 @@ void checkArgs(void) {
 	}
 }
 
+void doTimeStep(int timestep) {
+	return;
+}
+
+void core(void) {
+	struct timeval start, end;
+
+	MPI_Barrier(MPI_COMM_WORLD);
+	if (gettimeofday(&start, 0) != 0) {
+		fprintf(stderr, "could not do timing\n");
+		abort();
+	}
+
+	/*  time steps */
+	for (int n = 0; n < nsteps; n++) {
+		doTimeStep(n);
+	}
+
+	if (gettimeofday(&end, 0) != 0) {
+		fprintf(stderr, "could not do timing\n");
+		abort();
+	}
+
+	// compute running time
+	double rtime = (end.tv_sec + (end.tv_usec / 1000000.0)) -
+							(start.tv_sec + (start.tv_usec / 1000000.0));
+
+	/*  Iterations are done; sum the number of live cells */
+	int isum = 0;
+	for (int i = 1; i <= bwidth; i++) {
+		for (int j = 1; j <= bheight; j++) {
+			isum = isum + 0; // new[i][j];
+		}
+	}
+
+	printf("Number of live cells = %d\n", isum);
+	fprintf(stderr, "Game of Life took %10.3f seconds\n", rtime);
+
+}
+
 int main (int argc, char *argv[]) {
 
 	initMPI();
@@ -299,6 +338,13 @@ int main (int argc, char *argv[]) {
 	// bheight is now initialized
 
 	initializeBoard();
+
+	if (print_world > 0) {
+		if (isMaster()) printf("\ninitial world:\n\n");
+		printCells();
+	}
+
+	core();
 
 	MPI_Barrier(MPI_COMM_WORLD);
 	MPI_Finalize();
