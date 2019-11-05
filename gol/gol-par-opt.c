@@ -304,9 +304,9 @@ void checkArgs(void) {
 
 // TODO: maybe with caotic search we can overlap communication e computation
 void exchangeColumn(
-		// MPI_Request *reqSendFirstRow,
-		// MPI_Request *reqSendLastRow,
-		// MPI_Request *reqRecvLastRow,
+		MPI_Request *reqSendFirstRow,
+		MPI_Request *reqSendLastRow,
+		// MPI_Request *reqRecvFirstRow,
 		// MPI_Request *reqRecvLastRow,
 		MPI_Status *s) {
 	int precNode = (rank == 0) ? numberOfNodes - 1 : rank - 1;
@@ -319,18 +319,20 @@ void exchangeColumn(
 	buffer = malloc(bsize);
 	MPI_Buffer_attach(buffer, bsize);
 
-	MPI_Bsend(
+	MPI_Ibsend(
 		&old[1][1],
 		bwidth, MPI_INT,
 		precNode,
 		FIRST_ROW_TAG,
-		MPI_COMM_WORLD);
-	MPI_Bsend(
+		MPI_COMM_WORLD,
+		reqSendFirstRow);
+	MPI_Ibsend(
 		&old[bheight][1],
 		bwidth, MPI_INT,
 		nextNode,
 		LAST_ROW_TAG,
-		MPI_COMM_WORLD);
+		MPI_COMM_WORLD,
+		reqSendLastRow);
 
 	MPI_Recv(
 		&old[0][1],
@@ -395,23 +397,30 @@ void updateBoard(void) {
 
 }
 
-void updateState(void) {
-	// wait here
-
-	for (int i = 1; i <= bheight; i++)
+void updateState(MPI_Request *reqSendFirstRow, MPI_Request *reqSendLastRow, MPI_Status *s) {
+	for (int i = 2; i < bheight; i++)
 		for (int j = 1; j <= bwidth; j++)
 			old[i][j] = new[i][j];
+
+	MPI_Wait(reqSendFirstRow, s);
+	MPI_Wait(reqSendLastRow, s);
+
+	for (int j = 1; j <= bwidth; j++){
+		old[1][j] = new[1][j];
+		old[bheight][j] = new[bheight][j];
+	}
 }
 
 void doTimeStep(int timestep) {
 
+	MPI_Request reqSendFirstRow, reqSendLastRow;
 	MPI_Status s;
-	exchangeColumn(&s);
+	exchangeColumn(&reqSendFirstRow, &reqSendLastRow, &s);
 	boundaryConditions();
 
 	updateBoard();
 
-	updateState();
+	updateState(&reqSendFirstRow, &reqSendLastRow, &s);
 
 	if (print_world > 0 && (timestep % print_world) == (print_world - 1)) {
 		printCells(timestep);
