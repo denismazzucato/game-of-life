@@ -1,1 +1,3 @@
-1. overlap communication computation
+1. overlap communication computation send/recv
+2. avoid buffer stop
+

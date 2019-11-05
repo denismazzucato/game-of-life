@@ -19,6 +19,8 @@ run-opt-das5: gol-par-opt
 run-opt-loc: gol-par-opt
 	mpirun -np 6 gol-par-opt 3000 3000 1000 0
 
+run-opt-loc-ph:
+	mpirun -np 6 gol-par-opt 4000 2000 1000 0
 
 clean:
 	rm -f *.o *~ *core gol-par-opt gol-par gol-seq

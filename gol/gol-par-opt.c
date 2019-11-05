@@ -302,6 +302,53 @@ void checkArgs(void) {
 	}
 }
 
+void exchangeOperationOrder(
+		int item,
+		MPI_Request *reqSendFirstRow,
+		MPI_Request *reqSendLastRow,
+		MPI_Status *s,
+		int precNode,
+		int nextNode) {
+
+	switch (item) {
+		case 0:
+			MPI_Isend(
+				&old[1][1],
+				bwidth, MPI_INT,
+				precNode,
+				FIRST_ROW_TAG,
+				MPI_COMM_WORLD,
+				reqSendFirstRow);
+			break;
+		case 1:
+			MPI_Isend(
+				&old[bheight][1],
+				bwidth, MPI_INT,
+				nextNode,
+				LAST_ROW_TAG,
+				MPI_COMM_WORLD,
+				reqSendLastRow);
+		  break;
+		case 2:
+			MPI_Recv(
+				&old[0][1],
+				bwidth,	MPI_INT,
+				precNode,
+				LAST_ROW_TAG,
+				MPI_COMM_WORLD,
+				s);
+			break;
+		default:
+			MPI_Recv(
+				&old[bheight+1][1],
+				bwidth,	MPI_INT,
+				nextNode,
+				FIRST_ROW_TAG,
+				MPI_COMM_WORLD, s
+				);
+	}
+}
+
 // TODO: maybe with caotic search we can overlap communication e computation
 void exchangeColumn(
 		MPI_Request *reqSendFirstRow,
@@ -312,46 +359,25 @@ void exchangeColumn(
 	int precNode = (rank == 0) ? numberOfNodes - 1 : rank - 1;
 	int nextNode = (rank == (numberOfNodes -1)) ? 0 : rank + 1;
 
-	int bsize, *buffer, length;
-	MPI_Pack_size(bwidth, MPI_INT, MPI_COMM_WORLD, &length);
-
-	bsize = 2 * (MPI_BSEND_OVERHEAD + length);
-	buffer = malloc(bsize);
-	MPI_Buffer_attach(buffer, bsize);
-
-	MPI_Ibsend(
-		&old[1][1],
-		bwidth, MPI_INT,
-		precNode,
-		FIRST_ROW_TAG,
-		MPI_COMM_WORLD,
-		reqSendFirstRow);
-	MPI_Ibsend(
-		&old[bheight][1],
-		bwidth, MPI_INT,
-		nextNode,
-		LAST_ROW_TAG,
-		MPI_COMM_WORLD,
-		reqSendLastRow);
-
-	MPI_Recv(
-		&old[0][1],
-		bwidth,	MPI_INT,
-		precNode,
-		LAST_ROW_TAG,
-		MPI_COMM_WORLD, s
-		);
-
-	MPI_Recv(
-		&old[bheight+1][1],
-		bwidth,	MPI_INT,
-		nextNode,
-		FIRST_ROW_TAG,
-		MPI_COMM_WORLD, s
-		);
-
-	MPI_Buffer_detach( &buffer, &bsize );
-	free(buffer);
+	if (rank % 2 == 0) {
+		exchangeOperationOrder(0,
+			reqSendFirstRow, reqSendLastRow, s, precNode, nextNode);
+		exchangeOperationOrder(2,
+			reqSendFirstRow, reqSendLastRow, s, precNode, nextNode);
+		exchangeOperationOrder(1,
+			reqSendFirstRow, reqSendLastRow, s, precNode, nextNode);
+		exchangeOperationOrder(3,
+			reqSendFirstRow, reqSendLastRow, s, precNode, nextNode);
+	} else {
+		exchangeOperationOrder(3,
+			reqSendFirstRow, reqSendLastRow, s, precNode, nextNode);
+		exchangeOperationOrder(1,
+			reqSendFirstRow, reqSendLastRow, s, precNode, nextNode);
+		exchangeOperationOrder(2,
+			reqSendFirstRow, reqSendLastRow, s, precNode, nextNode);
+		exchangeOperationOrder(0,
+			reqSendFirstRow, reqSendLastRow, s, precNode, nextNode);
+	}
 }
 
 /* Take world wrap-around into account: */
