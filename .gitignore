@@ -334,9 +334,8 @@ TSWLatexianTemp*
 # vscode dir
 .vscode
 
-# gol executable
-gol-seq
-gol-par
-
 # temporary files
 *tmp*
+
+# sanity check
+*.test.*
