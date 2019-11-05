@@ -21,4 +21,4 @@ goal-par-opt-loc: gol-par-opt
 
 
 clean:
-	rm -f *.o *~ *core
+	rm -f *.o *~ *core gol-par-opt gol-par gol-seq
