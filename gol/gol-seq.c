@@ -17,8 +17,8 @@ static int **old, **new;
 static int print_world = 0;
 
 // use fixed world or random world?
-static int random_world = 0;
-// static int random_world = 1;
+// static int random_world = 0;
+static int random_world = 1;
 
 char *start_world[] = {
     /* Gosper glider gun */
@@ -57,7 +57,7 @@ printCells(void)
             if (old[i][j]) {
                 printf("O");
             } else {
-                printf("_"); // FIXME:
+                printf(" ");
             }
         }
         printf("\n");
@@ -168,6 +168,7 @@ main(int argc, char *argv[])
 
     /*  initialize board */
     if (random_world) {
+        srand(1);
         for (i = 1; i <= bwidth; i++) {
             for (j = 1; j <= bheight; j++) {
                 float x = rand() / ((float)RAND_MAX + 1);
