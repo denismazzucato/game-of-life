@@ -7,16 +7,16 @@ gol-par: gol-par.c
 gol-par-opt: gol-par-opt.c
 	mpicc -Wall -O3 -o gol-par-opt gol-par-opt.c -lm
 
-goal-par-das: gol-par
+run-das5: gol-par
 	prun -v -1 -np 16 -script $PRUN_ETC/prun-openmpi ./gol-par 3000 3000 1000 0
 
-goal-par-loc: gol-par
+run-loc: gol-par
 	mpirun -np 6 gol-par 3000 3000 1000 0
 
-goal-par-opt-das: gol-par-opt
+run-opt-das5: gol-par-opt
 	prun -v -1 -np 16 -script $PRUN_ETC/prun-openmpi ./gol-par-opt 3000 3000 1000 0
 
-goal-par-opt-loc: gol-par-opt
+run-opt-loc: gol-par-opt
 	mpirun -np 6 gol-par-opt 3000 3000 1000 0
 
 
