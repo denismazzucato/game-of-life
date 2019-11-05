@@ -9,6 +9,6 @@ if [ -n "$1" ]; then
 fi
 
 cd $DIR
-make
+make gol-par
 prun -v -1 -np $proc_number -script $PRUN_ETC/prun-openmpi ./$EXEC
 make clean
