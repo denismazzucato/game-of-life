@@ -63,6 +63,24 @@ void abort(void) {
 	exit(1);
 }
 
+// TODO: modificare qui perchè ogni bwidth incontro la cella di wrap around
+
+// these two functions are required to scatter and gather data
+void build_matrix_from_buffer(int* recbuf) {
+	for (int i = 1; i <= bheight; i++)
+		for (int j = 1; j <= bwidth; j++)
+			old[i * bwidth + j] = recbuf[(i-1)*bwidth + (j-1)];
+}
+int* build_buffer_from_old() {
+	int *buffer = malloc(bheight * bwidth * sizeof(int));
+
+	for (int i = 1; i <= bheight; i++)
+		for (int j = 1; j <= bwidth; j++)
+			buffer[(i-1)*bwidth + (j-1)] = old[i * bwidth + j];
+
+	return buffer;
+}
+
 // function that avoid the explicit use of rank
 int is_master(void) {
 	return rank == ROOT;
@@ -79,10 +97,11 @@ int prec_node(void) {
 
 // gather to print cells
 void print_cells(int timestep) {
-	int *global = malloc(bwidth * nrows * sizeof(int)); // global data in master
+	int *global = malloc(bwidth * nrows * sizeof(int)), // global data in master
+			*data = build_buffer_from_old(); // local data
 
 	MPI_Gatherv(
-		(old + sizeof(int)), bheight*bwidth, MPI_INT,
+		data, bheight*bwidth, MPI_INT,
 		global, counts, displs, MPI_INT,
 		ROOT, MPI_COMM_WORLD);
 
@@ -97,6 +116,7 @@ void print_cells(int timestep) {
 		}
 		free(global);
 	}
+	free(data);
 }
 
 // I've already check that argv contains exactly 5 args (name + args)
