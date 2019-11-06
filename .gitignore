@@ -339,3 +339,8 @@ TSWLatexianTemp*
 
 # sanity check
 *.test.*
+
+# executables
+gol-seq
+gol-par
+gol-par-opt
