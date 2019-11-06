@@ -10,7 +10,7 @@ static int
 	ROOT = 0, // master rank
 	NO_TIMESTEP = -1; // to print cells without initial line
 
-static int rank, number_nodes, bsize, *buffer; // initializated by mpi_init
+static int rank, number_nodes, bsize, *buffer = 0; // initializated by mpi_init
 
 static int *counts, *displs, sum; // used in gather and scatter operations
 
@@ -442,8 +442,10 @@ int main (int argc, char *argv[]) {
 	// computation core
 	core();
 
-	MPI_Buffer_detach( &buffer, &bsize );
-	free(buffer);
+	int *bptr = 0, bl;
+	MPI_Buffer_detach( &bptr, &bl );
+	if (buffer) free(buffer);
+	if (bptr) free(bptr);
 	MPI_Finalize();
 	free_matrices();
 	return 0;
