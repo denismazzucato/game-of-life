@@ -272,7 +272,19 @@ void exchange_column(
 		MPI_Request *reqSendLastRow,
 		MPI_Request *reqRecvFirstRow,
 		MPI_Request *reqRecvLastRow) {
-	// no buffered required, synchronous non-blocking communication
+	// no buffered required, synchronous non-blocking communicatio
+
+	MPI_Isend(
+		&old[real_w + 1],	bwidth, MPI_INT,
+		prec_node(), FIRST_ROW_TAG,
+		MPI_COMM_WORLD,
+		reqSendFirstRow);
+	MPI_Isend(
+		&old[bheight * real_w + 1],	bwidth, MPI_INT,
+		next_node(), LAST_ROW_TAG,
+		MPI_COMM_WORLD,
+		reqSendLastRow);
+
 	MPI_Irecv(
 		&old[1], bwidth,	MPI_INT,
 		prec_node(), LAST_ROW_TAG,
@@ -285,17 +297,6 @@ void exchange_column(
 		MPI_COMM_WORLD,
 		reqRecvLastRow
 		);
-
-	MPI_Isend(
-		&old[real_w + 1],	bwidth, MPI_INT,
-		prec_node(), FIRST_ROW_TAG,
-		MPI_COMM_WORLD,
-		reqSendFirstRow);
-	MPI_Isend(
-		&old[bheight * real_w + 1],	bwidth, MPI_INT,
-		next_node(), LAST_ROW_TAG,
-		MPI_COMM_WORLD,
-		reqSendLastRow);
 }
 
 /* Take world wrap-around into account: */
