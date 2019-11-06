@@ -82,7 +82,7 @@ void print_cells(int timestep) {
 	int *global = malloc(bwidth * nrows * sizeof(int)); // global data in master
 
 	MPI_Gatherv(
-		(old + 1), bheight*bwidth, MPI_INT,
+		(old + sizeof(int)), bheight*bwidth, MPI_INT,
 		global, counts, displs, MPI_INT,
 		ROOT, MPI_COMM_WORLD);
 
@@ -188,7 +188,7 @@ void scatter_rows(int* data) {
 	// divide the data among processes as described by counts and displs
   MPI_Scatterv(
 		data, counts, displs, MPI_INT,
-		(old + 1), bheight*bwidth, MPI_INT,
+		(old + sizeof(int)), bheight*bwidth, MPI_INT,
 		ROOT, MPI_COMM_WORLD);
 }
 
