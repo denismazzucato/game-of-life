@@ -302,82 +302,49 @@ void checkArgs(void) {
 	}
 }
 
-void exchangeOperationOrder(
-		int item,
-		MPI_Request *reqSendFirstRow,
-		MPI_Request *reqSendLastRow,
-		MPI_Status *s,
-		int precNode,
-		int nextNode) {
-
-	switch (item) {
-		case 0:
-			MPI_Isend(
-				&old[1][1],
-				bwidth, MPI_INT,
-				precNode,
-				FIRST_ROW_TAG,
-				MPI_COMM_WORLD,
-				reqSendFirstRow);
-			break;
-		case 1:
-			MPI_Isend(
-				&old[bheight][1],
-				bwidth, MPI_INT,
-				nextNode,
-				LAST_ROW_TAG,
-				MPI_COMM_WORLD,
-				reqSendLastRow);
-		  break;
-		case 2:
-			MPI_Recv(
-				&old[0][1],
-				bwidth,	MPI_INT,
-				precNode,
-				LAST_ROW_TAG,
-				MPI_COMM_WORLD,
-				s);
-			break;
-		default:
-			MPI_Recv(
-				&old[bheight+1][1],
-				bwidth,	MPI_INT,
-				nextNode,
-				FIRST_ROW_TAG,
-				MPI_COMM_WORLD, s
-				);
-	}
-}
-
 // TODO: maybe with caotic search we can overlap communication e computation
-void exchangeColumn(
+void exchangeSendColumn(
 		MPI_Request *reqSendFirstRow,
 		MPI_Request *reqSendLastRow,
-		// MPI_Request *reqRecvFirstRow,
-		// MPI_Request *reqRecvLastRow,
-		MPI_Status *s) {
+		MPI_Request *reqRecvFirstRow,
+		MPI_Request *reqRecvLastRow
+		) {
 	int precNode = (rank == 0) ? numberOfNodes - 1 : rank - 1;
 	int nextNode = (rank == (numberOfNodes -1)) ? 0 : rank + 1;
 
-	if (rank % 2 == 0) {
-		exchangeOperationOrder(0,
-			reqSendFirstRow, reqSendLastRow, s, precNode, nextNode);
-		exchangeOperationOrder(2,
-			reqSendFirstRow, reqSendLastRow, s, precNode, nextNode);
-		exchangeOperationOrder(1,
-			reqSendFirstRow, reqSendLastRow, s, precNode, nextNode);
-		exchangeOperationOrder(3,
-			reqSendFirstRow, reqSendLastRow, s, precNode, nextNode);
-	} else {
-		exchangeOperationOrder(3,
-			reqSendFirstRow, reqSendLastRow, s, precNode, nextNode);
-		exchangeOperationOrder(1,
-			reqSendFirstRow, reqSendLastRow, s, precNode, nextNode);
-		exchangeOperationOrder(2,
-			reqSendFirstRow, reqSendLastRow, s, precNode, nextNode);
-		exchangeOperationOrder(0,
-			reqSendFirstRow, reqSendLastRow, s, precNode, nextNode);
-	}
+	MPI_Issend(
+		&old[1][1],
+		bwidth, MPI_INT,
+		precNode,
+		FIRST_ROW_TAG,
+		MPI_COMM_WORLD,
+		reqSendFirstRow);
+	MPI_Issend(
+		&old[bheight][1],
+		bwidth, MPI_INT,
+		nextNode,
+		LAST_ROW_TAG,
+		MPI_COMM_WORLD,
+		reqSendLastRow);
+
+	MPI_Irecv(
+		&old[0][1],
+		bwidth,	MPI_INT,
+		precNode,
+		LAST_ROW_TAG,
+		MPI_COMM_WORLD,
+		reqRecvFirstRow
+		);
+
+	MPI_Irecv(
+		&old[bheight+1][1],
+		bwidth,	MPI_INT,
+		nextNode,
+		FIRST_ROW_TAG,
+		MPI_COMM_WORLD,
+		reqRecvLastRow
+		);
+
 }
 
 /* Take world wrap-around into account: */
@@ -390,11 +357,50 @@ void boundaryConditions(void) {
 	}
 }
 
-void updateBoard(void) {
+void updateBoard(
+		MPI_Request *reqRecvFirstRow,
+		MPI_Request *reqRecvLastRow) {
 	int im, ip, jm, jp, nsum;
 
 	// TODO: first and last row for last to wait the receive
-	for (int i = 1; i <= bheight; i++)
+	for (int i = 2; i < bheight; i++)
+		for (int j = 1; j <= bwidth; j++) {
+
+			// sum surrounding cells
+			im = i - 1;
+			ip = i + 1;
+			jm = j - 1;
+			jp = j + 1;
+			nsum = old[im][jp] + old[i][jp] + old[ip][jp]
+					 + old[im][j]               + old[ip][j]
+					 + old[im][jm] + old[i][jm] + old[ip][jm];
+
+			switch (nsum) {
+			case 3:
+				// a new cell is born
+				new[i][j] = 1;
+				break;
+			case 2:
+				// nothing happens
+				new[i][j] = old[i][j];
+				break;
+			default:
+				// the cell, if any, dies
+				new[i][j] = 0;
+			}
+		}
+
+	// now I can conclude the receive
+	MPI_Status s;
+	MPI_Wait(reqRecvFirstRow, &s);
+	MPI_Wait(reqRecvLastRow, &s);
+
+	old[0][0] = old[0][bwidth];
+	old[0][bwidth+1] = old[0][1];
+	old[bheight+1][0] = old[bheight+1][bwidth];
+	old[bheight+1][bwidth+1] = old[bheight+1][1];
+
+	for (int i = 1; i <= bheight; i+=(bheight-1))
 		for (int j = 1; j <= bwidth; j++) {
 
 			// sum surrounding cells
@@ -423,30 +429,29 @@ void updateBoard(void) {
 
 }
 
-void updateState(MPI_Request *reqSendFirstRow, MPI_Request *reqSendLastRow, MPI_Status *s) {
-	for (int i = 2; i < bheight; i++)
+void updateState(
+		MPI_Request *reqSendFirstRow,
+		MPI_Request *reqSendLastRow) {
+	// wait here
+	MPI_Status s;
+	MPI_Wait(reqSendFirstRow, &s);
+	MPI_Wait(reqSendLastRow, &s);
+
+
+	for (int i = 1; i <= bheight; i++)
 		for (int j = 1; j <= bwidth; j++)
 			old[i][j] = new[i][j];
-
-	MPI_Wait(reqSendFirstRow, s);
-	MPI_Wait(reqSendLastRow, s);
-
-	for (int j = 1; j <= bwidth; j++){
-		old[1][j] = new[1][j];
-		old[bheight][j] = new[bheight][j];
-	}
 }
 
 void doTimeStep(int timestep) {
 
-	MPI_Request reqSendFirstRow, reqSendLastRow;
-	MPI_Status s;
-	exchangeColumn(&reqSendFirstRow, &reqSendLastRow, &s);
+	MPI_Request reqSendFirstRow, reqSendLastRow, reqRecvFirstRow, reqRecvLastRow;
+	exchangeSendColumn(&reqSendFirstRow, &reqSendLastRow, &reqRecvFirstRow, &reqRecvLastRow);
 	boundaryConditions();
 
-	updateBoard();
+	updateBoard(&reqRecvFirstRow, &reqRecvLastRow);
 
-	updateState(&reqSendFirstRow, &reqSendLastRow, &s);
+	updateState(&reqSendFirstRow, &reqSendLastRow);
 
 	if (print_world > 0 && (timestep % print_world) == (print_world - 1)) {
 		printCells(timestep);
