@@ -341,6 +341,6 @@ TSWLatexianTemp*
 *.test.*
 
 # executables
-gol-seq
-gol-par
-gol-par-opt
+*/gol-seq
+*/gol-par
+*/gol-par-opt

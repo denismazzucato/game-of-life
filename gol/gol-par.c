@@ -3,11 +3,10 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/time.h>
-#include <unistd.h> // notice this! you need it!
 
 static int
-	FIRST_ROW_TAG = 1,
-	LAST_ROW_TAG = 2,
+	FIRST_ROW_TAG = 1, // tag for communication over first row
+	LAST_ROW_TAG = 2, // tag for communication over last row
 	ROOT = 0;
 
 static int rank, numberOfNodes;
