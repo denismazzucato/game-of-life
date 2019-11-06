@@ -60,35 +60,39 @@ void abort(void) {
 	exit(1);
 }
 
-void buildMatrixFromBuffer(int* recbuf) {
-	int k = 0;
+// these two functions are required to scatter and gather data
+void build_matrix_from_buffer(int* recbuf) {
 	for (int i = 1; i <= bheight; i++)
 		for (int j = 1; j <= bwidth; j++)
-			old[i][j] = recbuf[k++]; // k == (i-1)*bwidth + (j-1)
+			old[i][j] = recbuf[(i-1)*bwidth + (j-1)];
 }
-
-int* buildBufferFromOldMatrix() {
+int* build_buffer_from_old() {
 	int *buffer = malloc(bheight * bwidth * sizeof(int));
 
-	int k = 0;
 	for (int i = 1; i <= bheight; i++)
 		for (int j = 1; j <= bwidth; j++)
-			buffer[k++] = old[i][j]; // k == (i-1)*bwidth + (j-1)
+			buffer[(i-1)*bwidth + (j-1)] = old[i][j];
 
 	return buffer;
 }
 
-int isMaster(void) {
+// function that avoid the explicit use of rank
+int is_master(void) {
 	return rank == ROOT;
 }
-
-int isLast(void) {
+int is_last(void) {
 	return rank == (number_nodes - 1);
+}
+int next_node(void) {
+	return is_last() ? 0 : rank + 1;
+}
+int prec_node(void) {
+	return is_master() ? number_nodes - 1 : rank - 1;
 }
 
 void printCells(int timestep) {
 	int *globalData = malloc(bwidth*nrows*sizeof(int)),
-			*data = buildBufferFromOldMatrix();
+			*data = build_buffer_from_old();
 
 	int	*recvcounts = malloc(number_nodes * sizeof(int)),
 		  *displs = malloc(number_nodes * sizeof(int));
@@ -106,7 +110,7 @@ void printCells(int timestep) {
 
 	MPI_Gatherv(data, bheight*bwidth, MPI_INT, globalData, recvcounts, displs, MPI_INT, ROOT, MPI_COMM_WORLD);
 
-	if (isMaster()) {
+	if (is_master()) {
 		if (timestep > -1)
 			fprintf(stdout, "\nafter time step %d:\n\n", timestep);
 
@@ -234,7 +238,7 @@ void scatterRows(int* data) {
 	// divide the data among processes as described by sendcounts and displs
   MPI_Scatterv(data, sendcounts, displs, MPI_INT, recbuf, bheight*bwidth, MPI_INT, ROOT, MPI_COMM_WORLD);
 
-	buildMatrixFromBuffer(recbuf);
+	build_matrix_from_buffer(recbuf);
 
 	free(recbuf);
 	free(sendcounts);
@@ -250,7 +254,7 @@ void scatterRows(int* data) {
 void initializeBoard(void) {
 	int *tempBoard = 0;
 
-	if (isMaster()) {
+	if (is_master()) {
 		tempBoard = buildBoard();
 
 		// fprintf(stderr, "\n[Initial Matrix:\n");
@@ -265,7 +269,7 @@ void initializeBoard(void) {
 
 	scatterRows(tempBoard);
 
-	if (tempBoard && isMaster()) free(tempBoard);
+	if (tempBoard && is_master()) free(tempBoard);
 }
 
 void freeMatrix(int **data) {
@@ -278,7 +282,7 @@ void freeMatrix(int **data) {
 }
 
 void argsNotProvided(void) {
-	if (isMaster()) {
+	if (is_master()) {
 		fprintf(
 			stderr,
 			"Usage: board_height board_width steps_count print_iter\n");
@@ -287,7 +291,7 @@ void argsNotProvided(void) {
 }
 
 void checkArgs(void) {
-	if (nrows <= number_nodes && isMaster()) {
+	if (nrows <= number_nodes && is_master()) {
 		fprintf(
 			stderr,
 			"Too few rows provided, provide at least %d rows\n",
@@ -303,8 +307,6 @@ void exchangeColumn(
 		// MPI_Request *reqRecvLastRow,
 		// MPI_Request *reqRecvLastRow,
 		MPI_Status *s) {
-	int precNode = (rank == 0) ? number_nodes - 1 : rank - 1;
-	int nextNode = (rank == (number_nodes -1)) ? 0 : rank + 1;
 
 	int bsize, *buffer, length;
 	MPI_Pack_size(bwidth, MPI_INT, MPI_COMM_WORLD, &length);
@@ -316,20 +318,20 @@ void exchangeColumn(
 	MPI_Bsend(
 		&old[1][1],
 		bwidth, MPI_INT,
-		precNode,
+		prec_node(),
 		FIRST_ROW_TAG,
 		MPI_COMM_WORLD);
 	MPI_Bsend(
 		&old[bheight][1],
 		bwidth, MPI_INT,
-		nextNode,
+		next_node(),
 		LAST_ROW_TAG,
 		MPI_COMM_WORLD);
 
 	MPI_Recv(
 		&old[0][1],
 		bwidth,	MPI_INT,
-		precNode,
+		prec_node(),
 		LAST_ROW_TAG,
 		MPI_COMM_WORLD, s
 		);
@@ -337,7 +339,7 @@ void exchangeColumn(
 	MPI_Recv(
 		&old[bheight+1][1],
 		bwidth,	MPI_INT,
-		nextNode,
+		next_node(),
 		FIRST_ROW_TAG,
 		MPI_COMM_WORLD, s
 		);
@@ -422,9 +424,9 @@ void core(void) {
 	}
 
 	/*  time steps */
-	// if(isMaster()) fprintf(stderr, "ffffffffff");
+	// if(is_master()) fprintf(stderr, "ffffffffff");
 	for (int n = 0; n < nsteps; n++) {
-		// if(isMaster()) fprintf(stderr, "\r\r\r\r\r\r\r\r\r\riter: %4d", n);
+		// if(is_master()) fprintf(stderr, "\r\r\r\r\r\r\r\r\r\riter: %4d", n);
 		doTimeStep(n);
 	}
 
@@ -449,7 +451,7 @@ void core(void) {
 
 	MPI_Reduce(&isum, &totalisum, 1, MPI_INT, MPI_SUM, ROOT, MPI_COMM_WORLD);
 
-	if (isMaster()) {
+	if (is_master()) {
 		printf("Number of live cells = %d\n", totalisum);
 		fprintf(stderr, "Game of Life took %10.3f seconds\n", maxrtime);
 	}
@@ -472,7 +474,7 @@ int main (int argc, char *argv[]) {
 	initializeBoard();
 
 	if (print_world > 0) {
-		if (isMaster()) printf("\ninitial world:\n\n");
+		if (is_master()) printf("\ninitial world:\n\n");
 		printCells(-1);
 	}
 
