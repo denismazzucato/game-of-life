@@ -10,7 +10,7 @@ static int
 	ROOT = 0, // master rank
 	NO_TIMESTEP = -1; // to print cells without initial line
 
-static int rank, number_nodes; // initializated by mpi_init
+static int rank, number_nodes, bsize, *buffer; // initializated by mpi_init
 
 static int *counts, *displs, sum; // used in gather and scatter operations
 
@@ -134,6 +134,13 @@ void init_MPI(void) {
 
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 	MPI_Comm_size(MPI_COMM_WORLD, &number_nodes);
+
+	// this provide a buffer to MPI
+	int length;
+	MPI_Pack_size(real_w, MPI_INT, MPI_COMM_WORLD, &length);
+	bsize = 2 * (MPI_BSEND_OVERHEAD + length);
+	buffer = malloc(bsize);
+	MPI_Buffer_attach(buffer, bsize);
 }
 
 /* the array allocation can be done without communication, each processors
@@ -434,6 +441,8 @@ int main (int argc, char *argv[]) {
 	// computation core
 	core();
 
+	MPI_Buffer_detach( &buffer, &bsize );
+	free(buffer);
 	MPI_Finalize();
 	free_matrices();
 	return 0;
