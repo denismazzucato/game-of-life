@@ -312,21 +312,6 @@ void exchangeSendColumn(
 	int precNode = (rank == 0) ? numberOfNodes - 1 : rank - 1;
 	int nextNode = (rank == (numberOfNodes -1)) ? 0 : rank + 1;
 
-	MPI_Issend(
-		&old[1][1],
-		bwidth, MPI_INT,
-		precNode,
-		FIRST_ROW_TAG,
-		MPI_COMM_WORLD,
-		reqSendFirstRow);
-	MPI_Issend(
-		&old[bheight][1],
-		bwidth, MPI_INT,
-		nextNode,
-		LAST_ROW_TAG,
-		MPI_COMM_WORLD,
-		reqSendLastRow);
-
 	MPI_Irecv(
 		&old[0][1],
 		bwidth,	MPI_INT,
@@ -345,13 +330,29 @@ void exchangeSendColumn(
 		reqRecvLastRow
 		);
 
+	MPI_Issend(
+		&old[1][1],
+		bwidth, MPI_INT,
+		precNode,
+		FIRST_ROW_TAG,
+		MPI_COMM_WORLD,
+		reqSendFirstRow);
+	MPI_Issend(
+		&old[bheight][1],
+		bwidth, MPI_INT,
+		nextNode,
+		LAST_ROW_TAG,
+		MPI_COMM_WORLD,
+		reqSendLastRow);
+
+
 }
 
 /* Take world wrap-around into account: */
 void boundaryConditions(void) {
 	// wait here
 
-	for (int i = 0; i < bheight + 2; i++) {
+	for (int i = 1; i <= bheight; i++) {
 		old[i][0] = old[i][bwidth];
 		old[i][bwidth + 1] = old[i][1];
 	}
