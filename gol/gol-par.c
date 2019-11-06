@@ -9,7 +9,7 @@ static int
 	LAST_ROW_TAG = 2, // tag for communication over last row
 	ROOT = 0;
 
-static int rank, numberOfNodes;
+static int rank, number_nodes; // initializated by mpi_init
 
 static int bwidth, // board width
 					 bheight, // board height, in the seq algorithm bheight == nrows
@@ -53,12 +53,7 @@ char *start_world[] = {
     "..........................................",
 };
 
-void debug(void) {
-	MPI_Barrier(MPI_COMM_WORLD);
-	fprintf(stderr,"\n--------------------- debug [%d] -------------------------", rank);
-	MPI_Barrier(MPI_COMM_WORLD);
-}
-
+// close the MPI communication and exit
 void abort(void) {
 	MPI_Abort(MPI_COMM_WORLD, 1);
 	MPI_Finalize();
@@ -88,23 +83,23 @@ int isMaster(void) {
 }
 
 int isLast(void) {
-	return rank == (numberOfNodes - 1);
+	return rank == (number_nodes - 1);
 }
 
 void printCells(int timestep) {
 	int *globalData = malloc(bwidth*nrows*sizeof(int)),
 			*data = buildBufferFromOldMatrix();
 
-	int	*recvcounts = malloc(numberOfNodes * sizeof(int)),
-		  *displs = malloc(numberOfNodes * sizeof(int));
+	int	*recvcounts = malloc(number_nodes * sizeof(int)),
+		  *displs = malloc(number_nodes * sizeof(int));
 	int sum = 0;
-	int iter, otherNodes = nrows % numberOfNodes; // nodes with N/p +1 rows
+	int iter, otherNodes = nrows % number_nodes; // nodes with N/p +1 rows
 
-  for (iter = 0; iter < numberOfNodes-otherNodes; iter++)
-    recvcounts[iter] = bwidth*(nrows/numberOfNodes);
-  for (;iter < numberOfNodes; iter++)
-    recvcounts[iter] = bwidth*(nrows/numberOfNodes + 1);
-  for (int i = 0; i < numberOfNodes; i++) {
+  for (iter = 0; iter < number_nodes-otherNodes; iter++)
+    recvcounts[iter] = bwidth*(nrows/number_nodes);
+  for (;iter < number_nodes; iter++)
+    recvcounts[iter] = bwidth*(nrows/number_nodes + 1);
+  for (int i = 0; i < number_nodes; i++) {
     displs[i] = sum;
     sum += recvcounts[i];
   }
@@ -138,7 +133,7 @@ void initMPI(void) {
 	MPI_Init(NULL, NULL); // TODO: shall I use something instead of NULL, NULL?
 
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-	MPI_Comm_size(MPI_COMM_WORLD, &numberOfNodes);
+	MPI_Comm_size(MPI_COMM_WORLD, &number_nodes);
 }
 
 /* the array allocation can be done without communication, each processors
@@ -148,10 +143,10 @@ void initMPI(void) {
  * distribuited in the last nodes
  */
 void allocateArrays(void) {
-	int rowsPerNode = nrows / numberOfNodes; // this is in avarage
+	int rowsPerNode = nrows / number_nodes; // this is in avarage
 
-	int otherNodes = nrows % numberOfNodes; // nodes with N/p +1 rows
-	int fullNodes = numberOfNodes - otherNodes; // nodes with N/p rows
+	int otherNodes = nrows % number_nodes; // nodes with N/p +1 rows
+	int fullNodes = number_nodes - otherNodes; // nodes with N/p rows
 
 	// each node in the first fullNodes holds N/p rows
 	// each node in the last otherNodes holds (N/p)+1 rows
@@ -222,16 +217,16 @@ int* buildBoard(void) {
 
 void scatterRows(int* data) {
 	int	*recbuf = malloc(bheight*bwidth * sizeof(int)),
-		  *sendcounts = malloc(numberOfNodes * sizeof(int)),
-		  *displs = malloc(numberOfNodes * sizeof(int));
+		  *sendcounts = malloc(number_nodes * sizeof(int)),
+		  *displs = malloc(number_nodes * sizeof(int));
 	int sum = 0;
-	int iter, otherNodes = nrows % numberOfNodes; // nodes with N/p +1 rows
+	int iter, otherNodes = nrows % number_nodes; // nodes with N/p +1 rows
 
-  for (iter = 0; iter < numberOfNodes-otherNodes; iter++)
-    sendcounts[iter] = bwidth*(nrows/numberOfNodes);
-  for (;iter < numberOfNodes; iter++)
-    sendcounts[iter] = bwidth*(nrows/numberOfNodes + 1);
-  for (int i = 0; i < numberOfNodes; i++) {
+  for (iter = 0; iter < number_nodes-otherNodes; iter++)
+    sendcounts[iter] = bwidth*(nrows/number_nodes);
+  for (;iter < number_nodes; iter++)
+    sendcounts[iter] = bwidth*(nrows/number_nodes + 1);
+  for (int i = 0; i < number_nodes; i++) {
     displs[i] = sum;
     sum += sendcounts[i];
   }
@@ -292,11 +287,11 @@ void argsNotProvided(void) {
 }
 
 void checkArgs(void) {
-	if (nrows <= numberOfNodes && isMaster()) {
+	if (nrows <= number_nodes && isMaster()) {
 		fprintf(
 			stderr,
 			"Too few rows provided, provide at least %d rows\n",
-			(numberOfNodes + 1));
+			(number_nodes + 1));
 		abort();
 	}
 }
@@ -308,8 +303,8 @@ void exchangeColumn(
 		// MPI_Request *reqRecvLastRow,
 		// MPI_Request *reqRecvLastRow,
 		MPI_Status *s) {
-	int precNode = (rank == 0) ? numberOfNodes - 1 : rank - 1;
-	int nextNode = (rank == (numberOfNodes -1)) ? 0 : rank + 1;
+	int precNode = (rank == 0) ? number_nodes - 1 : rank - 1;
+	int nextNode = (rank == (number_nodes -1)) ? 0 : rank + 1;
 
 	int bsize, *buffer, length;
 	MPI_Pack_size(bwidth, MPI_INT, MPI_COMM_WORLD, &length);
