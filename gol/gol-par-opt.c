@@ -240,8 +240,8 @@ void initialize_board(void) {
 }
 
 void free_matrices(void) {
-	free(old);
-	free(new);
+	if(old) free(old);
+	if(new) free(new);
 	if(counts) free(counts);
 	if(displs) free(displs);
 }
@@ -286,12 +286,12 @@ void exchange_column(
 		reqRecvLastRow
 		);
 
-	MPI_Issend(
+	MPI_Isend(
 		&old[real_w + 1],	bwidth, MPI_INT,
 		prec_node(), FIRST_ROW_TAG,
 		MPI_COMM_WORLD,
 		reqSendFirstRow);
-	MPI_Issend(
+	MPI_Isend(
 		&old[bheight * real_w + 1],	bwidth, MPI_INT,
 		next_node(), LAST_ROW_TAG,
 		MPI_COMM_WORLD,
