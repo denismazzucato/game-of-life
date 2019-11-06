@@ -27,8 +27,8 @@ static int *old = 0, *new = 0;
 static int print_world = 0;
 
 // use fixed world or random world?
-static int random_world = 0; // fixed
-// static int random_world = 1; // random
+// static int random_world = 0; // fixed
+static int random_world = 1; // random
 
 // 22x42
 char *start_world[] = {
