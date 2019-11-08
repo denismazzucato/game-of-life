@@ -4,15 +4,24 @@
 #include <string.h>
 #include <sys/time.h>
 
+#define BUFF_TYPE int
+static int BLOCK_SIZE = (8*sizeof(int)-1);
+
 static int
 	FIRST_ROW_TAG = 1, // tag for communication over first row
 	LAST_ROW_TAG = 2, // tag for communication over last row
 	ROOT = 0, // master rank
 	NO_TIMESTEP = -1; // to print cells without initial line
 
-static int rank, number_nodes, bsize, *buffer = 0; // initializated by mpi_init
+static int rank, number_nodes; // initializated by mpi_init
 
 static int *counts, *displs, sum; // used in gather and scatter operations
+
+static int
+	*recv_first_buffer = 0,
+	*recv_last_buffer = 0,
+ 	*send_first_buffer = 0,
+	*send_last_buffer = 0;
 
 static int bwidth, // board width
 					 bheight, // board height, in the seq algorithm bheight == nrows
@@ -72,6 +81,7 @@ void build_matrix_from_buffer(int* recbuf) {
 		for (int j = 1; j <= bwidth; j++)
 			old[i * real_w + j] = recbuf[k++];
 }
+
 int* build_buffer_from_old() {
 	int *buffer = malloc(bheight * bwidth * sizeof(int));
 
@@ -80,6 +90,25 @@ int* build_buffer_from_old() {
 			buffer[(i-1)*bwidth + (j-1)] = old[i * real_w + j];
 
 	return buffer;
+}
+
+int int_array_to_binary(int *data, int l) {
+  int tmp = 0b0;
+  for (int i = 0; i < l; i++)
+    tmp += data[i] << i;
+  return tmp;
+}
+
+void binary_to_array(int x, int l, int* output) {
+  output[0] = x % 2;
+  for (int i = 1; i < l; i++)
+    output[i] = (x >> (i)) - ((x >> (i + 1)) << 1);
+}
+
+int output_length(int input_length) {
+  return input_length % BLOCK_SIZE == 0
+    ? input_length / BLOCK_SIZE
+    : input_length / BLOCK_SIZE + 1;
 }
 
 // function that avoid the explicit use of rank
@@ -96,7 +125,7 @@ int prec_node(void) {
 	return is_master() ? number_nodes - 1 : rank - 1;
 }
 
-// gather to print cells
+// // gather to print cells
 void print_cells(int timestep) {
 	int *global = malloc(bwidth * nrows * sizeof(int)), // global data in master
 			*data = build_buffer_from_old(); // local data
@@ -127,20 +156,6 @@ void init_parameters(char *argv[]) {
 	real_w = bwidth + 2;
 	nsteps = atoi(argv[3]);
 	print_world = atoi(argv[4]);
-}
-
-void init_MPI(void) {
-	MPI_Init(NULL, NULL);
-
-	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-	MPI_Comm_size(MPI_COMM_WORLD, &number_nodes);
-
-	// this provide a buffer to MPI
-	int length;
-	MPI_Pack_size(real_w, MPI_INT, MPI_COMM_WORLD, &length);
-	bsize = 2 * (MPI_BSEND_OVERHEAD + length);
-	buffer = malloc(bsize);
-	MPI_Buffer_attach(buffer, bsize);
 }
 
 /* the array allocation can be done without communication, each processors
@@ -183,6 +198,12 @@ void allocateArrays(void) {
     displs[i] = sum;
     sum += counts[i];
   }
+
+	// instantiate buffer communication
+	send_first_buffer = malloc(output_length(bwidth) * sizeof(int));
+	send_last_buffer = malloc(output_length(bwidth) * sizeof(int));
+	recv_first_buffer = malloc(output_length(bwidth) * sizeof(int));
+	recv_last_buffer = malloc(output_length(bwidth) * sizeof(int));
 }
 
 float randomNumber(void) {
@@ -246,32 +267,26 @@ void initialize_board(void) {
 	if (temp_board) free(temp_board);
 }
 
-void free_matrices(void) {
-	if(old) free(old);
-	if(new) free(new);
-	if(counts) free(counts);
-	if(displs) free(displs);
+// output is already instantiate
+void send_buffer(int* input_data, int input_length, int* output) {
+  int i, out_l = output_length(input_length);
+  for (i = 0; i < out_l-1; i++)
+    output[i] = int_array_to_binary(&input_data[i * BLOCK_SIZE], BLOCK_SIZE);
+  int tmp_length = input_length % BLOCK_SIZE > 0
+    ? input_length % BLOCK_SIZE
+    : BLOCK_SIZE;
+  output[i] = int_array_to_binary(&input_data[(i) * BLOCK_SIZE], tmp_length);
 }
 
-void args_not_provided(void) {
-	if (is_master()) {
-		fprintf(
-			stderr,
-			"Usage: board_height board_width steps_count print_iter\n");
-		abort();
-	}
-}
-
-// our goal is to solve large problem fast,
-// so requiring at least number_nodes rows isn't a problem
-void check_args(void) {
-	if (nrows <= number_nodes && is_master()) {
-		fprintf(
-			stderr,
-			"Too few rows provided, provide at least %d rows\n",
-			(number_nodes + 1));
-		abort();
-	}
+// output is already instantiate
+void recv_buffer(int* input, int total_input_l, int* output) {
+  int i, input_length = output_length(total_input_l);
+  for (i = 0; i < input_length - 1; i++)
+    binary_to_array(input[i], BLOCK_SIZE, &output[i * BLOCK_SIZE]);
+  int tmp_length = total_input_l % BLOCK_SIZE > 0
+    ? total_input_l % BLOCK_SIZE
+    : BLOCK_SIZE;
+  binary_to_array(input[i], tmp_length, &output[i * BLOCK_SIZE]);
 }
 
 void exchange_column(
@@ -279,28 +294,31 @@ void exchange_column(
 		MPI_Request *reqSendLastRow,
 		MPI_Request *reqRecvFirstRow,
 		MPI_Request *reqRecvLastRow) {
-	// no buffered required, synchronous non-blocking communicatio
+	int dim = output_length(bwidth);
 
 	MPI_Irecv(
-		&old[1], bwidth,	MPI_INT,
+		recv_first_buffer, dim,	MPI_INT,
 		prec_node(), LAST_ROW_TAG,
 		MPI_COMM_WORLD,
 		reqRecvFirstRow
 		);
 	MPI_Irecv(
-		&old[(bheight+1) * real_w + 1], bwidth,	MPI_INT,
+		recv_last_buffer, dim, MPI_INT,
 		next_node(), FIRST_ROW_TAG,
 		MPI_COMM_WORLD,
 		reqRecvLastRow
 		);
 
-	MPI_Ibsend(
-		&old[real_w + 1],	bwidth, MPI_INT,
+	send_buffer(&old[real_w + 1], bwidth, send_first_buffer);
+	send_buffer(&old[bheight * real_w + 1], bwidth, send_last_buffer);
+
+	MPI_Issend(
+		send_first_buffer, dim, MPI_INT,
 		prec_node(), FIRST_ROW_TAG,
 		MPI_COMM_WORLD,
 		reqSendFirstRow);
-	MPI_Ibsend(
-		&old[bheight * real_w + 1],	bwidth, MPI_INT,
+	MPI_Issend(
+		send_last_buffer,	dim, MPI_INT,
 		next_node(), LAST_ROW_TAG,
 		MPI_COMM_WORLD,
 		reqSendLastRow);
@@ -347,6 +365,8 @@ void update_board(MPI_Request *reqRecvFirstRow,	MPI_Request *reqRecvLastRow) {
 	MPI_Status s;
 	MPI_Wait(reqRecvFirstRow, &s);
 	MPI_Wait(reqRecvLastRow, &s);
+	recv_buffer(recv_first_buffer, bwidth, &old[1]);
+	recv_buffer(recv_last_buffer, bwidth, &old[(bheight+1) * real_w + 1]);
 
 	// update last boundaries
 	old[0] = old[0 + bwidth];
@@ -401,7 +421,7 @@ void core(void) {
 
 	// compute running time
 	double rtime = (end.tv_sec + (end.tv_usec / 1000000.0)) -
-						   (start.tv_sec + (start.tv_usec / 1000000.0)),
+						     (start.tv_sec + (start.tv_usec / 1000000.0)),
 		     maxrtime;
 	MPI_Reduce(&rtime, &maxrtime, 1, MPI_DOUBLE, MPI_MAX, ROOT, MPI_COMM_WORLD);
 
@@ -415,6 +435,45 @@ void core(void) {
 	if (is_master()) {
 		printf("Number of live cells = %d\n", totalisum);
 		fprintf(stderr, "Game of Life took %10.3f seconds\n", maxrtime);
+	}
+}
+
+
+void init_MPI(void) {
+	MPI_Init(NULL, NULL);
+	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+	MPI_Comm_size(MPI_COMM_WORLD, &number_nodes);
+}
+
+void free_matrices(void) {
+	if(old) free(old);
+	if(new) free(new);
+	if(counts) free(counts);
+	if(displs) free(displs);
+	if(send_first_buffer) free(send_first_buffer);
+	if(send_last_buffer) free(send_last_buffer);
+	if(recv_first_buffer) free(recv_first_buffer);
+	if(recv_last_buffer) free(recv_last_buffer);
+}
+
+void args_not_provided(void) {
+	if (is_master()) {
+		fprintf(
+			stderr,
+			"Usage: board_height board_width steps_count print_iter\n");
+		abort();
+	}
+}
+
+// our goal is to solve large problem fast,
+// so requiring at least number_nodes rows isn't a problem
+void check_args(void) {
+	if (nrows <= number_nodes && is_master()) {
+		fprintf(
+			stderr,
+			"Too few rows provided, provide at least %d rows\n",
+			(number_nodes + 1));
+		abort();
 	}
 }
 
@@ -433,6 +492,7 @@ int main (int argc, char *argv[]) {
 	// bheight is now initialized
 
 	initialize_board();
+	// if (is_master()) fprintf(stderr, "\n\n> debug \n\n");
 
 	if (print_world > 0) {
 		if (is_master()) printf("\ninitial world:\n\n");
@@ -442,11 +502,7 @@ int main (int argc, char *argv[]) {
 	// computation core
 	core();
 
-	int *bptr = 0, bl;
-	MPI_Buffer_detach( &bptr, &bl );
-	if (buffer) free(buffer);
-	if (bptr) free(bptr);
 	MPI_Finalize();
-	free_matrices();
+	// free_matrices();
 	return 0;
 }
