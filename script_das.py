@@ -22,7 +22,7 @@ def extrapolate_info(stream_byte):
   return (lc, ex)
 
 mpi_cores = [6]
-prun_cores = [1, 8, 16, 32]
+prun_cores = [8, 16, 32]
 cores = prun_cores # TODO: change here
 def build_cmd(file_name, param, np):
   return build_mpi(file_name, param, np) # TODO: change here
