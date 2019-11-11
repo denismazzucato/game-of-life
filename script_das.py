@@ -27,21 +27,16 @@ cores = mpi_cores # TODO: change here
 def build_cmd(file_name, param, np):
   return build_mpi(file_name, param, np) # TODO: change here
 
-step = 10
+step = 2
 
 files = [
   'gol-par',
   'gol-par-opt',
 ]
 params = [
-  (1000, 1000, 1000, 0),
   (1000, 4000, 1000, 0),
   (4000, 1000, 1000, 0),
   (1000, 1000, 4000, 0),
-
-  (10000, 10000, 10000, 0),
-  (4000, 4000, 4000, 0),
-
   (6000, 4000, 2000, 0),
   (4000, 3000, 3000, 0),
 ]
