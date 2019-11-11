@@ -336,6 +336,7 @@ TSWLatexianTemp*
 
 # temporary files
 *tmp*
+out*
 
 # sanity check
 *.test.*

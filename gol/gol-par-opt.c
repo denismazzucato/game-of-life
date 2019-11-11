@@ -4,8 +4,62 @@
 #include <string.h>
 #include <sys/time.h>
 
-#define BUFF_TYPE int
-static int BLOCK_SIZE = (8*sizeof(int)-1);
+////////////////////////////////////////////////////////////////////////////////
+// Optimization 2 - Start
+////////////////////////////////////////////////////////////////////////////////
+
+static int BLOCK_SIZE = 8 * sizeof(int) - 1;
+
+static int
+	*recv_first_buffer = 0,
+	*recv_last_buffer = 0,
+ 	*send_first_buffer = 0,
+	*send_last_buffer = 0;
+
+int int_array_to_binary(int *data, int l) {
+  int tmp = 0b0;
+  for (int i = 0; i < l; i++)
+    tmp += data[i] << i;
+  return tmp;
+}
+
+void binary_to_array(int x, int l, int* output) {
+  output[0] = x % 2;
+  for (int i = 1; i < l; i++)
+    output[i] = (x >> (i)) - ((x >> (i + 1)) << 1);
+}
+
+int output_length(int input_length) {
+  return input_length % BLOCK_SIZE == 0
+    ? input_length / BLOCK_SIZE
+    : input_length / BLOCK_SIZE + 1;
+}
+
+// output is already instantiate
+void send_buffer(int* input_data, int input_length, int* output) {
+  int i, out_l = output_length(input_length);
+  for (i = 0; i < out_l-1; i++)
+    output[i] = int_array_to_binary(&input_data[i * BLOCK_SIZE], BLOCK_SIZE);
+  int tmp_length = input_length % BLOCK_SIZE > 0
+    ? input_length % BLOCK_SIZE
+    : BLOCK_SIZE;
+  output[i] = int_array_to_binary(&input_data[(i) * BLOCK_SIZE], tmp_length);
+}
+
+// output is already instantiate
+void recv_buffer(int* input, int total_input_l, int* output) {
+  int i, input_length = output_length(total_input_l);
+  for (i = 0; i < input_length - 1; i++)
+    binary_to_array(input[i], BLOCK_SIZE, &output[i * BLOCK_SIZE]);
+  int tmp_length = total_input_l % BLOCK_SIZE > 0
+    ? total_input_l % BLOCK_SIZE
+    : BLOCK_SIZE;
+  binary_to_array(input[i], tmp_length, &output[i * BLOCK_SIZE]);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// Optimization 2 - End
+////////////////////////////////////////////////////////////////////////////////
 
 static int
 	FIRST_ROW_TAG = 1, // tag for communication over first row
@@ -16,12 +70,6 @@ static int
 static int rank, number_nodes; // initializated by mpi_init
 
 static int *counts, *displs, sum; // used in gather and scatter operations
-
-static int
-	*recv_first_buffer = 0,
-	*recv_last_buffer = 0,
- 	*send_first_buffer = 0,
-	*send_last_buffer = 0;
 
 static int bwidth, // board width
 					 bheight, // board height, in the seq algorithm bheight == nrows
@@ -90,25 +138,6 @@ int* build_buffer_from_old() {
 			buffer[(i-1)*bwidth + (j-1)] = old[i * real_w + j];
 
 	return buffer;
-}
-
-int int_array_to_binary(int *data, int l) {
-  int tmp = 0b0;
-  for (int i = 0; i < l; i++)
-    tmp += data[i] << i;
-  return tmp;
-}
-
-void binary_to_array(int x, int l, int* output) {
-  output[0] = x % 2;
-  for (int i = 1; i < l; i++)
-    output[i] = (x >> (i)) - ((x >> (i + 1)) << 1);
-}
-
-int output_length(int input_length) {
-  return input_length % BLOCK_SIZE == 0
-    ? input_length / BLOCK_SIZE
-    : input_length / BLOCK_SIZE + 1;
 }
 
 // function that avoid the explicit use of rank
@@ -267,63 +296,37 @@ void initialize_board(void) {
 	if (temp_board) free(temp_board);
 }
 
-// output is already instantiate
-void send_buffer(int* input_data, int input_length, int* output) {
-  int i, out_l = output_length(input_length);
-  for (i = 0; i < out_l-1; i++)
-    output[i] = int_array_to_binary(&input_data[i * BLOCK_SIZE], BLOCK_SIZE);
-  int tmp_length = input_length % BLOCK_SIZE > 0
-    ? input_length % BLOCK_SIZE
-    : BLOCK_SIZE;
-  output[i] = int_array_to_binary(&input_data[(i) * BLOCK_SIZE], tmp_length);
-}
-
-// output is already instantiate
-void recv_buffer(int* input, int total_input_l, int* output) {
-  int i, input_length = output_length(total_input_l);
-  for (i = 0; i < input_length - 1; i++)
-    binary_to_array(input[i], BLOCK_SIZE, &output[i * BLOCK_SIZE]);
-  int tmp_length = total_input_l % BLOCK_SIZE > 0
-    ? total_input_l % BLOCK_SIZE
-    : BLOCK_SIZE;
-  binary_to_array(input[i], tmp_length, &output[i * BLOCK_SIZE]);
-}
+////////////////////////////////////////////////////////////////////////////////
+// Optimization 1 - Start
+////////////////////////////////////////////////////////////////////////////////
 
 void exchange_column(
-		MPI_Request *reqSendFirstRow,
-		MPI_Request *reqSendLastRow,
-		MPI_Request *reqRecvFirstRow,
-		MPI_Request *reqRecvLastRow) {
+		MPI_Request *reqSendFirstRow, MPI_Request *reqSendLastRow,
+		MPI_Request *reqRecvFirstRow, MPI_Request *reqRecvLastRow) {
 	int dim = output_length(bwidth);
 
-	MPI_Irecv(
-		recv_first_buffer, dim,	MPI_INT,
-		prec_node(), LAST_ROW_TAG,
-		MPI_COMM_WORLD,
-		reqRecvFirstRow
-		);
-	MPI_Irecv(
-		recv_last_buffer, dim, MPI_INT,
-		next_node(), FIRST_ROW_TAG,
-		MPI_COMM_WORLD,
-		reqRecvLastRow
-		);
+	MPI_Irecv(recv_first_buffer, dim,	MPI_INT,
+					  prec_node(), LAST_ROW_TAG, MPI_COMM_WORLD,
+						reqRecvFirstRow);
+	MPI_Irecv(recv_last_buffer, dim, MPI_INT,
+						next_node(), FIRST_ROW_TAG, MPI_COMM_WORLD,
+						reqRecvLastRow);
 
 	send_buffer(&old[real_w + 1], bwidth, send_first_buffer);
 	send_buffer(&old[bheight * real_w + 1], bwidth, send_last_buffer);
 
-	MPI_Issend(
-		send_first_buffer, dim, MPI_INT,
-		prec_node(), FIRST_ROW_TAG,
-		MPI_COMM_WORLD,
-		reqSendFirstRow);
-	MPI_Issend(
-		send_last_buffer,	dim, MPI_INT,
-		next_node(), LAST_ROW_TAG,
-		MPI_COMM_WORLD,
-		reqSendLastRow);
-
+	MPI_Issend(send_first_buffer, dim, MPI_INT,
+						 prec_node(), FIRST_ROW_TAG, MPI_COMM_WORLD,
+						 reqSendFirstRow);
+	MPI_Issend(send_last_buffer,	dim, MPI_INT,
+						 next_node(), LAST_ROW_TAG, MPI_COMM_WORLD,
+						 reqSendLastRow);
 }
+
+////////////////////////////////////////////////////////////////////////////////
+// Optimization 1 - End
+////////////////////////////////////////////////////////////////////////////////
+
 
 /* Take world wrap-around into account: */
 void boundary_conditions(void) {
