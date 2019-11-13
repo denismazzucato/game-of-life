@@ -81,6 +81,8 @@ def extrapolate_execution_time(stream):
       print("> [exe_time] {}".format(line.split()[-2]))
       return float(line.split()[-2])
 
+  raise Exception("no 'Game' found in cmd output\n> [{}]".format(stream))
+
 def perform_test(file_name, param, np):
   output = perform_cmd(build_cmd(file_name, param, np))
   ex = extrapolate_execution_time(output)
