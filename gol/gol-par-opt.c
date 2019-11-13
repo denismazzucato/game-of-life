@@ -315,10 +315,10 @@ void exchange_column(
 	send_buffer(&old[real_w + 1], bwidth, send_first_buffer);
 	send_buffer(&old[bheight * real_w + 1], bwidth, send_last_buffer);
 
-	MPI_Issend(send_first_buffer, dim, MPI_INT,
+	MPI_Isend(send_first_buffer, dim, MPI_INT,
 						 prec_node(), FIRST_ROW_TAG, MPI_COMM_WORLD,
 						 reqSendFirstRow);
-	MPI_Issend(send_last_buffer,	dim, MPI_INT,
+	MPI_Isend(send_last_buffer,	dim, MPI_INT,
 						 next_node(), LAST_ROW_TAG, MPI_COMM_WORLD,
 						 reqSendLastRow);
 }
