@@ -27,17 +27,14 @@ cores = prun_cores # TODO: change here
 def build_cmd(file_name, param, np):
   return build_mpi(file_name, param, np) # TODO: change here
 
-step = 2
+step = 1
 
 files = [
   'gol-par',
   'gol-par-opt',
 ]
 params = [
-  (1000, 4000, 1000, 0),
-  (4000, 1000, 1000, 0),
-  (1000, 1000, 4000, 0),
-  (6000, 4000, 2000, 0),
+  (10000, 10000, 5000, 0),
 ]
 
 tests=len(params)*step*len(cores)*3
@@ -54,6 +51,7 @@ for fil in files:
   for core in cores:
     out_obj[fil][core] = {}
     for param in params:
+      print("\nStarted {} {} {} ({} out of {})".format(fil, core, param, i, tests))
       out_obj[fil][core][param] = {}
       for k in range(step):
         out_obj[fil][core][param][k] = {}
@@ -65,7 +63,7 @@ for fil in files:
         out_ctx += "[{}, {}, {}, {}]\n > (live cells: {}; exec time: {})\n".format(fil, core, param, k, lc, ex)
 
       i += step
-      print("Ok {} {} {} ({} out of {})".format(fil, core, param, i, tests))
+      print("Ok")
 
 fil = 'gol-seq'
 out_obj[fil] = {}
