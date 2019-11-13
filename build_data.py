@@ -17,8 +17,8 @@ tests = {
   seq: {
     1: [
     # (10000, 10000, 5000), # too large
-    # (7000, 7000, 5000), # 13 min
-      (7000, 7000, 3000),
+    # (7000, 7000, 5000), # 13 min, too large for parallel -np 1
+      (7000, 7000, 3000), # 8 min
       (7000, 5000, 5000),
     ],
   },
@@ -90,12 +90,16 @@ def extrapolate_execution_time(stream):
       print("> [exe_time] {}".format(line.split()[-2]))
       return float(line.split()[-2])
 
-  raise Exception("no 'Game' found in cmd output\n> [{}]".format(stream))
+  print("> [error   ] no 'Game' found in cmd output\n> [{}]".format(stream))
+  return -1
 
 def perform_test(file_name, param, np):
   output = perform_cmd(build_cmd(file_name, param, np))
   ex = extrapolate_execution_time(output)
-  append(file_name, param, np, ex)
+
+  if ex != -1:
+    append(file_name, param, np, ex)
+    print("> [finished] wrote output to '{}' file\n".format(build_out_name(file_name, param, np)))
 
 def exec_tests(tests):
   i = 0
