@@ -9,7 +9,7 @@
 
 \begin{document}
 
-\title{Assignment Title}
+\title{MPI Assignment - Game of Life}
 \author{Denis Mazzucato\\Vrije Universiteit Amsterdam}
 \date{2019/20}
 
@@ -17,5 +17,48 @@
 \vfill
 \tableofcontents
 \newpage
+
+
+% What was the problem to solve and which algorithm(s) did you use?
+% In case you changed the sequential program, what were the changes?
+% What is the theoretical estimation of the performance of the parallel program? Note that the assignments might need different techniques to estimate the expected parallel performance.
+% What is the experimental set-up? Always specify a complete experimental set-up, explain how you decided what measurements to take and why, and what is the relevance of each experiment or set of experiments.
+% What was the procedure of taking measurements? Explain what you have measured, why, and how.
+% What were the results of your measurements? Include both numbers and graphs. Execution times and speed-ups must be included in your report; however, do include (in separate tables and/or graphs) any additional relevant measurements that you've taken and analyzed.
+% What do the numbers say about program performance? Explain all the results you include in the report; any unexplained graph or table is basically useless for the reader, and therefore will not be considered for grading your report.
+% How do the results compare to the theoretical estimation? Focus on explaining the (possible) gaps: why they appear and how can they be alleviated.
+% Is there any slow-down? Why? Is there any superlinear speedup? Why? Is there a flattening of the speed-up curve? Why?
+% How does the performance scale in case there were more processors?
+% What are the conclusions of your work? What is your experience with the particular language/programming model that the assignment targets? Any generic difficulties you have encountered? Any guidelines you've extracted from your work?
+
+
+\section{Game of Life}
+
+The problem to solve is a simple board game regards life evolving during a time
+simulation.
+The basic algorithm simply iterate each timestep and for each cell calculate
+the new value based on the neighbors,
+without any kind of trick or exploit.
+I've used the same algorithm also in both parallel and optimized version.
+By the way, some proper devices are introduced to make the most of
+\textit{Das5} infrastructure.
+This problem is a perfect example of what is called a stencil operation and
+this performs very well with a parallel algorithm.
+
+\subsection{Parallel algorithm}
+This version of the parallel algorithm simply distributes the data over nodes.
+So, in particular it distributes the grid (representing the board game) using
+row-wise partitioning.
+Each processor holds a slice of this grid and it needs to exchange two lines
+every timestep
+
+\subsection{Optimized algorithm}
+
+
+\section{Theoretical speedup and performance}
+
+\section{Measurement set-up}
+
+\section{}
 
 \end{document}

@@ -1,16 +1,74 @@
 import subprocess
 import time
 import json
+import os.path
+
+################################################################################
+
+mpi_cores = [6]
+prun_cores = [8, 16, 32]
+cores = prun_cores # TODO: change here
+def build_cmd(file_name, param, np):
+  return build_mpi(file_name, param, np) # TODO: change here
+
+################################################################################
+
+seq = 'gol-seq'
+par = 'gol-par'
+opt = 'gol-par-opt'
+treshold = 5000 * 5000 * 1000 # se sotto il treshold  fallo 3 times
+tests = {
+  seq: {
+    1: [(1000, 1000, 500)],
+  },
+  par: {
+    3: [(1000, 1000, 500)],
+    6: [(1000, 1000, 500)],
+  },
+  opt: {
+    3: [(1000, 1000, 500)],
+    6: [(1000, 1000, 500)],
+  }
+}
+
+
+################################################################################
 
 def build_prun(file_name, param, np):
-  return "prun -1 -np {} -script $PRUN_ETC/prun-openmpi ./gol/{} {} {} {} {}".format(np, file_name, param[0], param[1], param[2], param[3])
+  return "prun -1 -np {} -script $PRUN_ETC/prun-openmpi ./gol/{} {} {} {} 0".format(np, file_name, param[0], param[1], param[2])
 
 def build_mpi(file_name, param, np):
-  return "mpirun -np {} ./gol/{} {} {} {} {}".format(np, file_name, param[0], param[1], param[2], param[3])
+  return "mpirun -np {} ./gol/{} {} {} {} 0".format(np, file_name, param[0], param[1], param[2])
 
-def extrapolate_info(stream_byte):
-  stream = stream_byte.decode("utf-8")
-  # print("\n> output: [{}]".format(stream))
+def perform_cmd(cmd):
+  p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+  retval = p.wait()
+  stream = p.stdout.read().decode("utf-8")
+  return stream
+
+def build_out_name(file_name, param, np):
+  return "./out/test_{}_np{}_{}{}{}_.out".format(file_name, np, param[0], param[1], param[2])
+
+def append(file_name, param, np, ctx):
+  out_path = build_out_name(file_name, param, np)
+  with open(out_path) as f:
+    data = json.load(f)
+
+  new_data = {
+    'exec_time': (data['exec_time'] + ctx['exec_time'])/2,
+  }
+  (data['exec_time'] + ctx['exec_time'])/2
+
+  with open('test.json', 'w') as f:
+      json.dump(data, f)
+
+def read(file_name, param, np, ctx):
+  in_path = build_out_name(file_name, param, np)
+  with open(in_path, 'r') as in_file:
+    data = json.load(in_file)
+  return data
+
+def build_json(stream):
   lines = list(filter(lambda x: x != '', stream.split('\n')))
   lc = -1
   ex = -1
@@ -19,27 +77,20 @@ def extrapolate_info(stream_byte):
       lc = line.split()[-1]
     if "Game" == line.split()[0]:
       ex = line.split()[-2]
-  return (lc, ex)
 
-mpi_cores = [6]
-prun_cores = [8, 16, 32]
-cores = prun_cores # TODO: change here
-def build_cmd(file_name, param, np):
-  return build_mpi(file_name, param, np) # TODO: change here
+  return { 'live_cells': lc, 'exec_time': ex }
 
-step = 1
+def perform_test(file_name, param, np):
+  output = perform_cmd(build_cmd(file_name, param, np))
+  # append output in file
+  out_ctx = build_json(output)
+  append(file_name, param, np, out_ctx)
 
-files = [
-  'gol-par',
-  'gol-par-opt',
-]
-params = [
-  (10000, 10000, 5000, 0),
-]
-
-tests=len(params)*step*len(cores)*3
-i = 0
-print("launch {} tests".format(tests))
+def exec_tests(tests, use_saved_data):
+  for file_name in tests:
+    for np in tests[file_name]:
+      for param in tests[file_name][np]:
+        perform_test(file_name, param, np)
 
 millis = int(round(time.time() * 1000))
 out_ctx = "Output run {}\n".format(millis)
