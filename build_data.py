@@ -143,6 +143,5 @@ def exec_tests(tests):
         i += 1
         print("performing test number #{}: {} {} {}".format(i, file_name, np, str(param)))
         perform_test(file_name, param, np)
-        print("> [finished] wrote output to '{}' file\n".format(build_out_name(file_name, param, np)))
 
 exec_tests(tests)
