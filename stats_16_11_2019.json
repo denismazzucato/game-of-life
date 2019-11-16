@@ -1,0 +1,724 @@
+{
+    "(7000, 7000, 5000)": {
+        "1": {
+            "gol-seq": {
+                "exec_time": 786.83,
+                "problem_size_each_node": 49000000
+            }
+        },
+        "8": {
+            "gol-par": {
+                "exec_time": 124.353,
+                "speedup": 6.327390573609001,
+                "efficiency": 0.7909238217011251,
+                "comm_weight": 7000,
+                "tot_msg": 560000000,
+                "problem_size_each_node": 6132000
+            }
+        }
+    },
+    "(7000, 7000, 3000)": {
+        "1": {
+            "gol-seq": {
+                "exec_time": 480.621,
+                "problem_size_each_node": 49000000
+            },
+            "gol-par": {
+                "exec_time": 600.507,
+                "speedup": -1,
+                "efficiency": -1,
+                "comm_weight": 7000,
+                "tot_msg": 42000000,
+                "problem_size_each_node": 49007000
+            },
+            "gol-par-opt": {
+                "exec_time": 508.602,
+                "speedup": -1,
+                "efficiency": -1,
+                "comm_weight": 226,
+                "tot_msg": 1356000,
+                "increment": 15.304567640343905,
+                "problem_size_each_node": 49007000
+            }
+        },
+        "8": {
+            "gol-par": {
+                "exec_time": 77.0265,
+                "speedup": 6.239683745204572,
+                "efficiency": 0.7799604681505715,
+                "comm_weight": 7000,
+                "tot_msg": 336000000,
+                "problem_size_each_node": 6132000
+            },
+            "gol-par-opt": {
+                "exec_time": 64.44200000000001,
+                "speedup": 7.458194966015951,
+                "efficiency": 0.9322743707519939,
+                "comm_weight": 226,
+                "tot_msg": 10848000,
+                "increment": 16.33788371534471,
+                "problem_size_each_node": 6132000
+            }
+        },
+        "16": {
+            "gol-par": {
+                "exec_time": 37.806000000000004,
+                "speedup": 12.712823361371209,
+                "efficiency": 0.7945514600857005,
+                "comm_weight": 7000,
+                "tot_msg": 672000000,
+                "problem_size_each_node": 3066000
+            },
+            "gol-par-opt": {
+                "exec_time": 31.873666666666665,
+                "speedup": 15.078936635257946,
+                "efficiency": 0.9424335397036216,
+                "comm_weight": 226,
+                "tot_msg": 21696000,
+                "increment": 15.691512811017665,
+                "problem_size_each_node": 3066000
+            },
+            "gol-par-nbl": {
+                "exec_time": 31.34,
+                "speedup": 15.335705169112954,
+                "efficiency": 0.9584815730695596,
+                "comm_weight": 226,
+                "tot_msg": 21696000,
+                "problem_size_each_node": 3066000
+            }
+        },
+        "32": {
+            "gol-par": {
+                "exec_time": 18.227666666666668,
+                "speedup": 26.367664539253514,
+                "efficiency": 0.8239895168516723,
+                "comm_weight": 7000,
+                "tot_msg": 1344000000,
+                "problem_size_each_node": 1533000
+            },
+            "gol-par-opt": {
+                "exec_time": 15.229333333333335,
+                "speedup": 31.558899492208017,
+                "efficiency": 0.9862156091315005,
+                "comm_weight": 226,
+                "tot_msg": 43392000,
+                "increment": 16.449353546806137,
+                "problem_size_each_node": 1533000
+            },
+            "gol-par-nbl": {
+                "exec_time": 14.881,
+                "speedup": 32.29762784759089,
+                "efficiency": 1.0093008702372153,
+                "comm_weight": 226,
+                "tot_msg": 43392000,
+                "problem_size_each_node": 1533000
+            }
+        }
+    },
+    "(7000, 5000, 5000)": {
+        "1": {
+            "gol-seq": {
+                "exec_time": 560.704,
+                "problem_size_each_node": 35000000
+            },
+            "gol-par": {
+                "exec_time": 698.154,
+                "speedup": -1,
+                "efficiency": -1,
+                "comm_weight": 5000,
+                "tot_msg": 50000000,
+                "problem_size_each_node": 35005000
+            },
+            "gol-par-opt": {
+                "exec_time": 594.561,
+                "speedup": -1,
+                "efficiency": -1,
+                "comm_weight": 162,
+                "tot_msg": 1620000,
+                "increment": 14.83813026925291,
+                "problem_size_each_node": 35005000
+            }
+        },
+        "8": {
+            "gol-par": {
+                "exec_time": 88.964,
+                "speedup": 6.3025943078099,
+                "efficiency": 0.7878242884762375,
+                "comm_weight": 5000,
+                "tot_msg": 400000000,
+                "problem_size_each_node": 4380000
+            },
+            "gol-par-opt": {
+                "exec_time": 75.227,
+                "speedup": 7.453494091217248,
+                "efficiency": 0.931686761402156,
+                "comm_weight": 162,
+                "tot_msg": 12960000,
+                "increment": 15.441077289690204,
+                "problem_size_each_node": 4380000
+            }
+        },
+        "16": {
+            "gol-par": {
+                "exec_time": 41.163,
+                "speedup": 13.621553336734445,
+                "efficiency": 0.8513470835459028,
+                "comm_weight": 5000,
+                "tot_msg": 800000000,
+                "problem_size_each_node": 2190000
+            },
+            "gol-par-opt": {
+                "exec_time": 33.039500000000004,
+                "speedup": 16.97071686920201,
+                "efficiency": 1.0606698043251257,
+                "comm_weight": 162,
+                "tot_msg": 25920000,
+                "increment": 19.734956149940462,
+                "problem_size_each_node": 2190000
+            }
+        },
+        "32": {
+            "gol-par": {
+                "exec_time": 20.84,
+                "speedup": 26.90518234165067,
+                "efficiency": 0.8407869481765834,
+                "comm_weight": 5000,
+                "tot_msg": 1600000000,
+                "problem_size_each_node": 1095000
+            },
+            "gol-par-opt": {
+                "exec_time": 17.3415,
+                "speedup": 32.3330738402099,
+                "efficiency": 1.0104085575065593,
+                "comm_weight": 162,
+                "tot_msg": 51840000,
+                "increment": 16.787428023032632,
+                "problem_size_each_node": 1095000
+            }
+        }
+    },
+    "(7000, 3000, 7000)": {
+        "1": {
+            "gol-seq": {
+                "exec_time": 469.036,
+                "problem_size_each_node": 21000000
+            }
+        },
+        "8": {
+            "gol-par": {
+                "exec_time": 70.187,
+                "speedup": 6.682662031430322,
+                "efficiency": 0.8353327539287903,
+                "comm_weight": 3000,
+                "tot_msg": 336000000,
+                "problem_size_each_node": 2628000
+            },
+            "gol-par-opt": {
+                "exec_time": 56.449,
+                "speedup": 8.30902230331804,
+                "efficiency": 1.038627787914755,
+                "comm_weight": 97,
+                "tot_msg": 10864000,
+                "increment": 19.573425278185418,
+                "problem_size_each_node": 2628000
+            }
+        },
+        "16": {
+            "gol-par": {
+                "exec_time": 32.721000000000004,
+                "speedup": 14.334402982793923,
+                "efficiency": 0.8959001864246202,
+                "comm_weight": 3000,
+                "tot_msg": 672000000,
+                "problem_size_each_node": 1314000
+            },
+            "gol-par-opt": {
+                "exec_time": 28.5105,
+                "speedup": 16.451342487855353,
+                "efficiency": 1.0282089054909596,
+                "comm_weight": 97,
+                "tot_msg": 21728000,
+                "increment": 12.867883010910433,
+                "problem_size_each_node": 1314000
+            },
+            "gol-par-nbl": {
+                "exec_time": 27.407,
+                "speedup": 17.113730068960486,
+                "efficiency": 1.0696081293100304,
+                "comm_weight": 97,
+                "tot_msg": 21728000,
+                "problem_size_each_node": 1314000
+            }
+        },
+        "32": {
+            "gol-par": {
+                "exec_time": 17.597,
+                "speedup": 26.654316076603966,
+                "efficiency": 0.8329473773938739,
+                "comm_weight": 3000,
+                "tot_msg": 1344000000,
+                "problem_size_each_node": 657000
+            },
+            "gol-par-opt": {
+                "exec_time": 14.7775,
+                "speedup": 31.739874809676873,
+                "efficiency": 0.9918710878024023,
+                "comm_weight": 97,
+                "tot_msg": 43456000,
+                "increment": 16.022617491617897,
+                "problem_size_each_node": 657000
+            },
+            "gol-par-nbl": {
+                "exec_time": 14.857,
+                "speedup": 31.570034327253147,
+                "efficiency": 0.9865635727266608,
+                "comm_weight": 97,
+                "tot_msg": 43456000,
+                "problem_size_each_node": 657000
+            }
+        }
+    },
+    "(5000, 7000, 5000)": {
+        "1": {
+            "gol-seq": {
+                "exec_time": 562.369,
+                "problem_size_each_node": 35000000
+            }
+        },
+        "8": {
+            "gol-par": {
+                "exec_time": 89.616,
+                "speedup": 6.275319139439386,
+                "efficiency": 0.7844148924299232,
+                "comm_weight": 7000,
+                "tot_msg": 560000000,
+                "problem_size_each_node": 4382000
+            },
+            "gol-par-opt": {
+                "exec_time": 75.413,
+                "speedup": 7.457189078806042,
+                "efficiency": 0.9321486348507553,
+                "comm_weight": 226,
+                "tot_msg": 18080000,
+                "increment": 15.848732369219784,
+                "problem_size_each_node": 4382000
+            }
+        },
+        "16": {
+            "gol-par": {
+                "exec_time": 41.044,
+                "speedup": 13.701612903225808,
+                "efficiency": 0.856350806451613,
+                "comm_weight": 7000,
+                "tot_msg": 1120000000,
+                "problem_size_each_node": 2191000
+            },
+            "gol-par-opt": {
+                "exec_time": 32.759,
+                "speedup": 17.16685491010104,
+                "efficiency": 1.072928431881315,
+                "comm_weight": 226,
+                "tot_msg": 36160000,
+                "increment": 20.1856544196472,
+                "problem_size_each_node": 2191000
+            },
+            "gol-par-nbl": {
+                "exec_time": 32.429,
+                "speedup": 17.34154614696722,
+                "efficiency": 1.0838466341854514,
+                "comm_weight": 226,
+                "tot_msg": 36160000,
+                "problem_size_each_node": 2191000
+            }
+        },
+        "32": {
+            "gol-par": {
+                "exec_time": 20.999499999999998,
+                "speedup": 26.78011381223363,
+                "efficiency": 0.8368785566323009,
+                "comm_weight": 7000,
+                "tot_msg": 2240000000,
+                "problem_size_each_node": 1099000
+            },
+            "gol-par-opt": {
+                "exec_time": 17.5195,
+                "speedup": 32.09960329918091,
+                "efficiency": 1.0031126030994035,
+                "comm_weight": 226,
+                "tot_msg": 72320000,
+                "increment": 16.571823138646145,
+                "problem_size_each_node": 1099000
+            },
+            "gol-par-nbl": {
+                "exec_time": 17.613,
+                "speedup": 31.9292000227105,
+                "efficiency": 0.9977875007097031,
+                "comm_weight": 226,
+                "tot_msg": 72320000,
+                "problem_size_each_node": 1099000
+            }
+        }
+    },
+    "(5000, 5000, 7000)": {
+        "1": {
+            "gol-seq": {
+                "exec_time": 555.744,
+                "problem_size_each_node": 25000000
+            }
+        },
+        "8": {
+            "gol-par": {
+                "exec_time": 85.751,
+                "speedup": 6.480904012781192,
+                "efficiency": 0.810113001597649,
+                "comm_weight": 5000,
+                "tot_msg": 560000000,
+                "problem_size_each_node": 3130000
+            },
+            "gol-par-opt": {
+                "exec_time": 72.952,
+                "speedup": 7.617940563658297,
+                "efficiency": 0.9522425704572871,
+                "comm_weight": 162,
+                "tot_msg": 18144000,
+                "increment": 14.925773460367814,
+                "problem_size_each_node": 3130000
+            }
+        },
+        "16": {
+            "gol-par": {
+                "exec_time": 38.798500000000004,
+                "speedup": 14.32385272626519,
+                "efficiency": 0.8952407953915744,
+                "comm_weight": 5000,
+                "tot_msg": 1120000000,
+                "problem_size_each_node": 1565000
+            },
+            "gol-par-opt": {
+                "exec_time": 32.5945,
+                "speedup": 17.05023853717652,
+                "efficiency": 1.0656399085735324,
+                "comm_weight": 162,
+                "tot_msg": 36288000,
+                "increment": 15.990308903694748,
+                "problem_size_each_node": 1565000
+            },
+            "gol-par-nbl": {
+                "exec_time": 32.279,
+                "speedup": 17.216890238235383,
+                "efficiency": 1.0760556398897114,
+                "comm_weight": 162,
+                "tot_msg": 36288000,
+                "problem_size_each_node": 1565000
+            }
+        },
+        "32": {
+            "gol-par": {
+                "exec_time": 20.2145,
+                "speedup": 27.492344604120806,
+                "efficiency": 0.8591357688787752,
+                "comm_weight": 5000,
+                "tot_msg": 2240000000,
+                "problem_size_each_node": 785000
+            },
+            "gol-par-opt": {
+                "exec_time": 17.471,
+                "speedup": 31.8095129071032,
+                "efficiency": 0.994047278346975,
+                "comm_weight": 162,
+                "tot_msg": 72576000,
+                "increment": 13.57194093348834,
+                "problem_size_each_node": 785000
+            },
+            "gol-par-nbl": {
+                "exec_time": 16.926,
+                "speedup": 32.83374689826303,
+                "efficiency": 1.0260545905707197,
+                "comm_weight": 162,
+                "tot_msg": 72576000,
+                "problem_size_each_node": 785000
+            }
+        }
+    },
+    "(5000, 5000, 1000)": {
+        "1": {
+            "gol-seq": {
+                "exec_time": 85.735,
+                "problem_size_each_node": 25000000
+            },
+            "gol-par": {
+                "exec_time": 111.489,
+                "speedup": -1,
+                "efficiency": -1,
+                "comm_weight": 5000,
+                "tot_msg": 10000000,
+                "problem_size_each_node": 25005000
+            },
+            "gol-par-opt": {
+                "exec_time": 90.94225,
+                "speedup": -1,
+                "efficiency": -1,
+                "comm_weight": 162,
+                "tot_msg": 324000,
+                "increment": 18.42939662208828,
+                "problem_size_each_node": 25005000
+            }
+        },
+        "8": {
+            "gol-par": {
+                "exec_time": 14.0935,
+                "speedup": 6.083300812431262,
+                "efficiency": 0.7604126015539078,
+                "comm_weight": 5000,
+                "tot_msg": 80000000,
+                "problem_size_each_node": 3130000
+            },
+            "gol-par-opt": {
+                "exec_time": 11.50525,
+                "speedup": 7.451815475543773,
+                "efficiency": 0.9314769344429716,
+                "comm_weight": 162,
+                "tot_msg": 2592000,
+                "increment": 18.36484904388548,
+                "problem_size_each_node": 3130000
+            }
+        },
+        "16": {
+            "gol-par": {
+                "exec_time": 7.035,
+                "speedup": 12.186922530206113,
+                "efficiency": 0.761682658137882,
+                "comm_weight": 5000,
+                "tot_msg": 160000000,
+                "problem_size_each_node": 1565000
+            },
+            "gol-par-opt": {
+                "exec_time": 5.72775,
+                "speedup": 14.968355811618872,
+                "efficiency": 0.9355222382261795,
+                "comm_weight": 162,
+                "tot_msg": 5184000,
+                "increment": 18.582089552238802,
+                "problem_size_each_node": 1565000
+            }
+        },
+        "32": {
+            "gol-par": {
+                "exec_time": 4.6655,
+                "speedup": 18.376379809238024,
+                "efficiency": 0.5742618690386883,
+                "comm_weight": 5000,
+                "tot_msg": 320000000,
+                "problem_size_each_node": 785000
+            },
+            "gol-par-opt": {
+                "exec_time": 3.8637500000000005,
+                "speedup": 22.189582659333546,
+                "efficiency": 0.6934244581041733,
+                "comm_weight": 162,
+                "tot_msg": 10368000,
+                "increment": 17.184653306183673,
+                "problem_size_each_node": 785000
+            }
+        }
+    },
+    "(3000, 7000, 7000)": {
+        "1": {
+            "gol-seq": {
+                "exec_time": 469.804,
+                "problem_size_each_node": 21000000
+            }
+        },
+        "8": {
+            "gol-par": {
+                "exec_time": 69.219,
+                "speedup": 6.787211603750416,
+                "efficiency": 0.848401450468802,
+                "comm_weight": 7000,
+                "tot_msg": 784000000,
+                "problem_size_each_node": 2632000
+            },
+            "gol-par-opt": {
+                "exec_time": 56.624,
+                "speedup": 8.296905905623056,
+                "efficiency": 1.037113238202882,
+                "comm_weight": 226,
+                "tot_msg": 25312000,
+                "increment": 18.195871075860662,
+                "problem_size_each_node": 2632000
+            }
+        },
+        "16": {
+            "gol-par": {
+                "exec_time": 32.663,
+                "speedup": 14.3833695618896,
+                "efficiency": 0.8989605976181,
+                "comm_weight": 7000,
+                "tot_msg": 1568000000,
+                "problem_size_each_node": 1316000
+            },
+            "gol-par-opt": {
+                "exec_time": 27.3685,
+                "speedup": 17.16586586769461,
+                "efficiency": 1.072866616730913,
+                "comm_weight": 226,
+                "tot_msg": 50624000,
+                "increment": 16.209472491810295,
+                "problem_size_each_node": 1316000
+            },
+            "gol-par-nbl": {
+                "exec_time": 27.442,
+                "speedup": 17.119889220902266,
+                "efficiency": 1.0699930763063916,
+                "comm_weight": 226,
+                "tot_msg": 50624000,
+                "problem_size_each_node": 1316000
+            }
+        },
+        "32": {
+            "gol-par": {
+                "exec_time": 17.579,
+                "speedup": 26.725297229649012,
+                "efficiency": 0.8351655384265316,
+                "comm_weight": 7000,
+                "tot_msg": 3136000000,
+                "problem_size_each_node": 658000
+            },
+            "gol-par-opt": {
+                "exec_time": 15.146,
+                "speedup": 31.01835468110392,
+                "efficiency": 0.9693235837844975,
+                "comm_weight": 226,
+                "tot_msg": 101248000,
+                "increment": 13.840377723419989,
+                "problem_size_each_node": 658000
+            },
+            "gol-par-nbl": {
+                "exec_time": 14.847,
+                "speedup": 31.6430255270425,
+                "efficiency": 0.9888445477200781,
+                "comm_weight": 226,
+                "tot_msg": 101248000,
+                "problem_size_each_node": 658000
+            }
+        }
+    },
+    "(8000, 8000, 5000)": {
+        "8": {
+            "gol-par": {
+                "exec_time": 161.39,
+                "speedup": -1,
+                "efficiency": -1,
+                "comm_weight": 8000,
+                "tot_msg": 640000000,
+                "problem_size_each_node": 8008000
+            },
+            "gol-par-opt": {
+                "exec_time": 137.914,
+                "speedup": -1,
+                "efficiency": -1,
+                "comm_weight": 259,
+                "tot_msg": 20720000,
+                "increment": 14.546130491356342,
+                "problem_size_each_node": 8008000
+            }
+        },
+        "16": {
+            "gol-par": {
+                "exec_time": 82.031,
+                "speedup": -1,
+                "efficiency": -1,
+                "comm_weight": 8000,
+                "tot_msg": 1280000000,
+                "problem_size_each_node": 4008000
+            },
+            "gol-par-opt": {
+                "exec_time": 69.055,
+                "speedup": -1,
+                "efficiency": -1,
+                "comm_weight": 259,
+                "tot_msg": 41440000,
+                "increment": 15.818410113249866,
+                "problem_size_each_node": 4008000
+            }
+        },
+        "32": {
+            "gol-par": {
+                "exec_time": 37.751,
+                "speedup": -1,
+                "efficiency": -1,
+                "comm_weight": 8000,
+                "tot_msg": 2560000000,
+                "problem_size_each_node": 2008000
+            },
+            "gol-par-opt": {
+                "exec_time": 30.927,
+                "speedup": -1,
+                "efficiency": -1,
+                "comm_weight": 259,
+                "tot_msg": 82880000,
+                "increment": 18.076342348547055,
+                "problem_size_each_node": 2008000
+            }
+        }
+    },
+    "(10000, 10000, 5000)": {
+        "8": {
+            "gol-par": {
+                "exec_time": 253.53,
+                "speedup": -1,
+                "efficiency": -1,
+                "comm_weight": 10000,
+                "tot_msg": 800000000,
+                "problem_size_each_node": 12510000
+            },
+            "gol-par-opt": {
+                "exec_time": 213.90699999999998,
+                "speedup": -1,
+                "efficiency": -1,
+                "comm_weight": 323,
+                "tot_msg": 25840000,
+                "increment": 15.628525223839395,
+                "problem_size_each_node": 12510000
+            }
+        },
+        "16": {
+            "gol-par": {
+                "exec_time": 128.065,
+                "speedup": -1,
+                "efficiency": -1,
+                "comm_weight": 10000,
+                "tot_msg": 1600000000,
+                "problem_size_each_node": 6260000
+            },
+            "gol-par-opt": {
+                "exec_time": 108.45599999999999,
+                "speedup": -1,
+                "efficiency": -1,
+                "comm_weight": 323,
+                "tot_msg": 51680000,
+                "increment": 15.311755749033702,
+                "problem_size_each_node": 6260000
+            }
+        },
+        "32": {
+            "gol-par": {
+                "exec_time": 63.975,
+                "speedup": -1,
+                "efficiency": -1,
+                "comm_weight": 10000,
+                "tot_msg": 3200000000,
+                "problem_size_each_node": 3130000
+            },
+            "gol-par-opt": {
+                "exec_time": 53.8915,
+                "speedup": -1,
+                "efficiency": -1,
+                "comm_weight": 323,
+                "tot_msg": 103360000,
+                "increment": 15.76162563501368,
+                "problem_size_each_node": 3130000
+            }
+        }
+    }
+}
